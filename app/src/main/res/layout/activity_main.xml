@@ -15,8 +15,19 @@
             android:layout_height="74dp"
             android:background="@color/button"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+            android:title="Умная кофейня"
             app:navigationIcon="@drawable/ic_menu"
             app:titleCentered="true" />
+
+        <TextView
+            android:id="@+id/titleSmart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="casual"
+            android:text="Умная кофейня"
+            android:textSize="24sp"
+            app:layout_anchor="@+id/toolbar"
+            app:layout_anchorGravity="center" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -28,5 +39,6 @@
         android:fitsSystemWindows="true"
         app:menu="@menu/drawer_menu"
         app:headerLayout="@layout/nav_header" />
+
 
 </androidx.drawerlayout.widget.DrawerLayout>

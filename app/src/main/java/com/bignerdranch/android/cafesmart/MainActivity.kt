@@ -27,7 +27,8 @@ class MainActivity : AppCompatActivity() {
         navView = findViewById(R.id.navigationView)
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+
+
 
         val toggle = ActionBarDrawerToggle(
             this,
