@@ -5,28 +5,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Основной контент -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Верхняя панель с гамбургером -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/button"
             android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
             android:title="Умная кофейня"
             app:navigationIcon="@drawable/ic_menu"
             app:titleCentered="true" />
 
-        <!-- Контент приложения под тулбаром -->
-        <include layout="@layout/content_main" />
+        <TextView
+            android:id="@+id/titleSmart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Умная кофейня"
+            app:layout_anchor="@+id/toolbar"
+            app:layout_anchorGravity="center" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!-- Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
         android:layout_width="wrap_content"

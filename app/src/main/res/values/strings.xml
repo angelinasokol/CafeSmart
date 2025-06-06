@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">CafeSmart</string>
+    <string name="navigation_drawer_open" translatable="false">Открыть меню</string>
+    <string name="navigation_drawer_close" translatable="false">Закрыть меню</string>
+
 </resources>

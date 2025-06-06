@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cafesmart"
+    namespace = "com.bignerdranch.android.cafesmart"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.cafesmart"
+        applicationId = "com.bignerdranch.android.cafesmart"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
