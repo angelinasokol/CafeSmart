@@ -22,7 +22,6 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drinkAdapter: DrinkAdapter
 
     private lateinit var prefs: SharedPreferences
+    private var currentCity = ""
 
     // Launcher для SettingsActivity с получением результата
     private val settingsLauncher = registerForActivityResult(
@@ -43,8 +43,11 @@ class MainActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val city = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-            cityTextView.text = "Город: $city"
-            getWeatherData(city)
+            if (city != currentCity) {
+                currentCity = city
+                cityTextView.text = "Город: $city"
+                getWeatherData(city)
+            }
         }
     }
 
@@ -83,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_orders -> showToast("История заказов")
                 R.id.nav_settings -> {
                     val intent = Intent(this, SettingsActivity::class.java)
-                    settingsLauncher.launch(intent)  // Запускаем с ожиданием результата
+                    settingsLauncher.launch(intent)
                 }
                 R.id.nav_about -> showToast("О приложении")
             }
@@ -91,8 +94,8 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        val city = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-        cityTextView.text = "Город: $city"
+        currentCity = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
+        cityTextView.text = "Город: $currentCity"
 
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/")
@@ -106,14 +109,7 @@ class MainActivity : AppCompatActivity() {
             adapter = drinkAdapter
         }
 
-        getWeatherData(city)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val city = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-        cityTextView.text = "Город: $city"
-        getWeatherData(city)
+        getWeatherData(currentCity)
     }
 
     private fun showToast(text: String) {
@@ -153,8 +149,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_refresh -> {
-                val city = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-                getWeatherData(city)
+                getWeatherData(currentCity)
                 true
             }
             else -> super.onOptionsItemSelected(item)

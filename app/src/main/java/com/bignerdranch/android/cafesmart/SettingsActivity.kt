@@ -47,7 +47,7 @@ class SettingsActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         prefs = prefs,
                         onSaveAndExit = {
-                            setResult(RESULT_OK)  // Сообщаем, что настройки изменились
+                            setResult(RESULT_OK)
                             finish()
                         }
                     )
