@@ -1,10 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="160dp"
-    android:background="@color/coffee_button"
+    android:background="@color/accent"
+    android:gravity="bottom"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:gravity="bottom">
+    android:padding="24dp">
 
     <TextView
         android:id="@+id/tvUserName"
