@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bignerdranch.android.cafesmart.data.DrinkAdapter
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
+import android.content.Intent
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,17 +25,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navView: NavigationView
     private lateinit var weatherService: WeatherApiService
     private lateinit var weatherTextView: TextView
+    private lateinit var cityTextView: TextView  // Новый TextView для показа города
     private lateinit var drinkDatabase: DrinkDatabase
     private lateinit var drinkRecyclerView: RecyclerView
     private lateinit var drinkAdapter: DrinkAdapter
 
+    private lateinit var prefs: SharedPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        // Проверка темы и установка (если надо — кастомизируй тему в стиле)
+        val isDarkTheme = prefs.getBoolean(KEY_DARK_THEME, false)
+        setTheme(if (isDarkTheme) R.style.Theme_CafeSmart_Dark else R.style.Theme_CafeSmart_Light)
+
         setContentView(R.layout.activity_main)
 
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navigationView)
         weatherTextView = findViewById(R.id.weatherTextView)
+        cityTextView = findViewById(R.id.cityTextView)  // инициализация нового TextView
         drinkRecyclerView = findViewById(R.id.drinkRecyclerView)
 
         drinkDatabase = DrinkDatabase.getDatabase(this, lifecycleScope)
@@ -54,12 +66,18 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_home -> showToast("Главная")
                 R.id.nav_orders -> showToast("История заказов")
-                R.id.nav_settings -> showToast("Настройки")
+                R.id.nav_settings -> {
+                    val intent = Intent(this, SettingsActivity::class.java)
+                    startActivity(intent)
+                }
                 R.id.nav_about -> showToast("О приложении")
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+
+        val city = prefs.getString(KEY_CITY, "Moscow") ?: "Moscow"
+        cityTextView.text = "Город: $city"
 
         // Retrofit и WeatherService
         val retrofit = Retrofit.Builder()
@@ -76,7 +94,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Запрос погоды и обновление списка напитков
-        getWeatherData("Moscow")
+        getWeatherData(city)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // При возвращении с настроек обновляем город и данные
+        val city = prefs.getString(KEY_CITY, "Moscow") ?: "Moscow"
+        cityTextView.text = "Город: $city"
+        getWeatherData(city)
+
+        // Можно также обновить тему или уведомления, если нужно
     }
 
     private fun showToast(text: String) {
@@ -100,7 +128,6 @@ class MainActivity : AppCompatActivity() {
                             val output = "Температура: $temp°C\nПогода: $description"
                             weatherTextView.text = output
 
-                            // Здесь преобразуем Float в Double
                             showDrinksBasedOnTemperature(temp.toDouble())
                         }
 
@@ -118,10 +145,8 @@ class MainActivity : AppCompatActivity() {
     private fun showDrinksBasedOnTemperature(outsideTemp: Double) {
         lifecycleScope.launch {
             val drinks = if (outsideTemp < 10) {
-                // Холодно — горячие напитки сверху
                 drinkDatabase.drinkDao().getAllDrinksSortedHotToCold()
             } else {
-                // Жарко — холодные напитки сверху
                 drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
             }
             drinkAdapter.setDrinks(drinks)
