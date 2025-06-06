@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="light_brown">#FFF5EB</color>
-    <color name="dark_brown">#5D4037</color>
-    <color name="coffee_brown">#6D4C41</color>
-    <color name="white">#FFFFFF</color>
+    <color name="coffee_background">#FFF9F5</color>
     <color name="black">#000000</color>
-    <color name="gray">#9E9E9E</color>
+    <color name="coffee_price">#6D4C41</color>
+    <color name="coffee_button">#5D4037</color>
+    <color name="white">#FFFFFF</color>
 </resources>
