@@ -1,5 +1,6 @@
 package com.bignerdranch.android.cafesmart
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -18,6 +19,7 @@ import com.bignerdranch.android.cafesmart.data.DrinkAdapter
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
 import android.content.Intent
+import android.content.SharedPreferences
 
 class MainActivity : AppCompatActivity() {
 
