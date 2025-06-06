@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bignerdranch.android.cafesmart.ui.theme.CafeSmartTheme
 
@@ -46,7 +45,11 @@ class SettingsActivity : ComponentActivity() {
                 ) { innerPadding ->
                     SettingsScreen(
                         modifier = Modifier.padding(innerPadding),
-                        prefs = prefs
+                        prefs = prefs,
+                        onSaveAndExit = {
+                            setResult(RESULT_OK)  // Сообщаем, что настройки изменились
+                            finish()
+                        }
                     )
                 }
             }
@@ -55,8 +58,11 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
-    // Читаем из prefs начальные значения
+fun SettingsScreen(
+    modifier: Modifier = Modifier,
+    prefs: SharedPreferences,
+    onSaveAndExit: () -> Unit
+) {
     var selectedCity by remember {
         mutableStateOf(prefs.getString(KEY_CITY, "Moscow") ?: "Moscow")
     }
@@ -67,7 +73,6 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
         mutableStateOf(prefs.getBoolean(KEY_DARK_THEME, false))
     }
 
-    // Список городов для выбора (можно расширить)
     val cities = listOf("Moscow", "Saint Petersburg", "Novosibirsk", "Yekaterinburg", "Kazan")
 
     var expanded by remember { mutableStateOf(false) }
@@ -94,7 +99,6 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        // Выбор города через DropdownMenu
         Text(text = "Выберите город", style = MaterialTheme.typography.titleMedium)
         Box {
             Text(
@@ -115,7 +119,6 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
                         text = { Text(city) },
                         onClick = {
                             selectedCity = city
-                            saveSetting(KEY_CITY, city)
                             expanded = false
                         }
                     )
@@ -125,7 +128,6 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Переключатель уведомлений
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -134,16 +136,12 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
             Spacer(modifier = Modifier.weight(1f))
             Switch(
                 checked = isNotificationsEnabled,
-                onCheckedChange = {
-                    isNotificationsEnabled = it
-                    saveSetting(KEY_NOTIFICATIONS, it)
-                }
+                onCheckedChange = { isNotificationsEnabled = it }
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Переключатель темы
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -152,41 +150,22 @@ fun SettingsScreen(modifier: Modifier = Modifier, prefs: SharedPreferences) {
             Spacer(modifier = Modifier.weight(1f))
             Switch(
                 checked = isDarkThemeEnabled,
-                onCheckedChange = {
-                    isDarkThemeEnabled = it
-                    saveSetting(KEY_DARK_THEME, it)
-                    // Для применения темы нужно перезапустить активити или приложение, можно показать Toast
-                }
+                onCheckedChange = { isDarkThemeEnabled = it }
             )
         }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun SettingsScreenPreview() {
-    // Для превью используем пустой SharedPreferences-подобный объект
-    val fakePrefs = object : SharedPreferences {
-        private val map = mutableMapOf<String, Any>(
-            KEY_CITY to "Moscow",
-            KEY_NOTIFICATIONS to true,
-            KEY_DARK_THEME to false
-        )
+        Spacer(modifier = Modifier.height(32.dp))
 
-        override fun getAll() = map.toMap()
-        override fun getString(key: String?, defValue: String?) = map[key] as? String ?: defValue
-        override fun getStringSet(key: String?, defValues: MutableSet<String>?) = null
-        override fun getInt(key: String?, defValue: Int) = 0
-        override fun getLong(key: String?, defValue: Long) = 0L
-        override fun getFloat(key: String?, defValue: Float) = 0f
-        override fun getBoolean(key: String?, defValue: Boolean) = map[key] as? Boolean ?: defValue
-        override fun contains(key: String?) = map.containsKey(key)
-        override fun edit() = throw UnsupportedOperationException()
-        override fun registerOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener?) {}
-        override fun unregisterOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener?) {}
-    }
-
-    CafeSmartTheme {
-        SettingsScreen(prefs = fakePrefs)
+        Button(
+            onClick = {
+                saveSetting(KEY_CITY, selectedCity)
+                saveSetting(KEY_NOTIFICATIONS, isNotificationsEnabled)
+                saveSetting(KEY_DARK_THEME, isDarkThemeEnabled)
+                onSaveAndExit()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Сохранить и выйти")
+        }
     }
 }
