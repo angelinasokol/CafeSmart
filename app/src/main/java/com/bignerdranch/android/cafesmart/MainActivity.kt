@@ -40,15 +40,9 @@ class MainActivity : AppCompatActivity() {
 
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            // Получаем город с дефолтным значением из ресурсов
-            val defaultCity = resources.getString(R.string.default_city) // "Moscow"
-            val city = prefs.getString(Constants.KEY_CITY, defaultCity) ?: defaultCity
-            currentCity = city
-            cityTextView.text = getString(R.string.city_label, city) // "Город: %s"
-            getWeatherData(city)
-        }
+    ) {
+        refreshCity()
+        reloadDrinks()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +60,24 @@ class MainActivity : AppCompatActivity() {
         setupWeatherService()
         setupRecyclerView()
         loadInitialData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshCity()
+        reloadDrinks()
+    }
+
+    private fun refreshCity() {
+        val city = prefs.getString(Constants.KEY_CITY, null)
+        if (city.isNullOrEmpty()) {
+            cityTextView.text = getString(R.string.city_not_set)
+            weatherTextView.text = getString(R.string.weather_not_available)
+        } else {
+            currentCity = city
+            cityTextView.text = getString(R.string.city_label, city)
+            getWeatherData(city)
+        }
     }
 
     private fun initViews() {
@@ -124,11 +136,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadInitialData() {
-        currentCity = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-        cityTextView.text = "Город: $currentCity"
-        getWeatherData(currentCity)
+        refreshCity()
+        reloadDrinks()
+    }
 
-        // Загрузка напитков из базы данных
+    private fun reloadDrinks() {
         lifecycleScope.launch {
             val drinks = drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
             drinkAdapter.setDrinks(drinks)
@@ -170,23 +182,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        lifecycleScope.launch {
-            try {
-                val drinks = drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
-                drinkAdapter.setDrinks(drinks)
-            } catch (e: Exception) {
-                Toast.makeText(this@MainActivity, "Ошибка загрузки напитков", Toast.LENGTH_SHORT).show()
-            }
-        }
         return when (item.itemId) {
             R.id.action_refresh -> {
-                getWeatherData(currentCity)
+                if (currentCity.isNotEmpty()) {
+                    getWeatherData(currentCity)
+                } else {
+                    showToast("Установите город в настройках")
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
-
         }
-
     }
-
 }

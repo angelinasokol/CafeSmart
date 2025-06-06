@@ -63,24 +63,31 @@ fun SettingsScreen(
     prefs: SharedPreferences,
     onSaveAndExit: () -> Unit
 ) {
-    var selectedCity by remember {
+    val cities = listOf(
+        "Москва" to "Moscow",
+        "Санкт-Петербург" to "Saint Petersburg",
+        "Новосибирск" to "Novosibirsk",
+        "Екатеринбург" to "Yekaterinburg",
+        "Казань" to "Kazan"
+        // можно добавить другие города
+    )
+
+    val englishToRussian = cities.associate { it.second to it.first }
+
+    var selectedCityEnglish by remember {
         mutableStateOf(prefs.getString(KEY_CITY, "Moscow") ?: "Moscow")
     }
+
+    var selectedCityRussian by remember {
+        mutableStateOf(englishToRussian[selectedCityEnglish] ?: "Москва")
+    }
+
     var isNotificationsEnabled by remember {
         mutableStateOf(prefs.getBoolean(KEY_NOTIFICATIONS, true))
     }
     var isDarkThemeEnabled by remember {
         mutableStateOf(prefs.getBoolean(KEY_DARK_THEME, false))
     }
-
-    val cities = listOf(
-        "Москва" to "Moscow",
-        "Санкт-Петербург" to "Saint Petersburg",
-        "Новосибирск" to "Novosibirsk",
-        "Екатеринбург" to "Yekaterinburg",
-        "Казань" to "Kazan",
-        // остальные города
-    )
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -109,7 +116,7 @@ fun SettingsScreen(
         Text(text = "Выберите город", style = MaterialTheme.typography.titleMedium)
         Box {
             Text(
-                text = selectedCity,
+                text = selectedCityRussian,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = true }
@@ -125,7 +132,8 @@ fun SettingsScreen(
                     DropdownMenuItem(
                         text = { Text(russianName) },
                         onClick = {
-                            selectedCity = englishName
+                            selectedCityEnglish = englishName
+                            selectedCityRussian = russianName
                             expanded = false
                         }
                     )
@@ -165,9 +173,9 @@ fun SettingsScreen(
 
         Button(
             onClick = {
-                saveSetting(Constants.KEY_CITY, selectedCity)
-                saveSetting(Constants.KEY_NOTIFICATIONS, isNotificationsEnabled)
-                saveSetting(Constants.KEY_DARK_THEME, isDarkThemeEnabled)
+                saveSetting(KEY_CITY, selectedCityEnglish)
+                saveSetting(KEY_NOTIFICATIONS, isNotificationsEnabled)
+                saveSetting(KEY_DARK_THEME, isDarkThemeEnabled)
                 onSaveAndExit()
             },
             modifier = Modifier.fillMaxWidth()
