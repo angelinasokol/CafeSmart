@@ -53,6 +53,6 @@ glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", versi
 
 [plugins]
 android-application = { id = "com.android.application", version = "8.8.2" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version = "1.9.24" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version = "2.1.10" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version = "1.8.20" }
