@@ -20,6 +20,7 @@ import com.bignerdranch.android.cafesmart.data.DrinkAdapter
 import com.bignerdranch.android.cafesmart.data.DrinkDatabase
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.launch
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -37,17 +38,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private var currentCity = ""
 
-    // Launcher для SettingsActivity с получением результата
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val city = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-            if (city != currentCity) {
-                currentCity = city
-                cityTextView.text = "Город: $city"
-                getWeatherData(city)
-            }
+            // Получаем город с дефолтным значением из ресурсов
+            val defaultCity = resources.getString(R.string.default_city) // "Moscow"
+            val city = prefs.getString(Constants.KEY_CITY, defaultCity) ?: defaultCity
+            currentCity = city
+            cityTextView.text = getString(R.string.city_label, city) // "Город: %s"
+            getWeatherData(city)
         }
     }
 
@@ -61,15 +61,23 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        initViews()
+        setupDatabase()
+        setupWeatherService()
+        setupRecyclerView()
+        loadInitialData()
+    }
+
+    private fun initViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navigationView)
         weatherTextView = findViewById(R.id.weatherTextView)
         cityTextView = findViewById(R.id.cityTextView)
         drinkRecyclerView = findViewById(R.id.drinkRecyclerView)
 
-        drinkDatabase = DrinkDatabase.getDatabase(this, lifecycleScope)
-
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
         val toggle = ActionBarDrawerToggle(
             this,
             drawerLayout,
@@ -93,23 +101,38 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
+    }
 
-        currentCity = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
-        cityTextView.text = "Город: $currentCity"
+    private fun setupDatabase() {
+        drinkDatabase = DrinkDatabase.getDatabase(this, lifecycleScope)
+    }
 
+    private fun setupWeatherService() {
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         weatherService = retrofit.create(WeatherApiService::class.java)
+    }
 
+    private fun setupRecyclerView() {
         drinkAdapter = DrinkAdapter()
         drinkRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@MainActivity)
             adapter = drinkAdapter
         }
+    }
 
+    private fun loadInitialData() {
+        currentCity = prefs.getString(Constants.KEY_CITY, "Moscow") ?: "Moscow"
+        cityTextView.text = "Город: $currentCity"
         getWeatherData(currentCity)
+
+        // Загрузка напитков из базы данных
+        lifecycleScope.launch {
+            val drinks = drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
+            drinkAdapter.setDrinks(drinks)
+        }
     }
 
     private fun showToast(text: String) {
@@ -147,12 +170,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        lifecycleScope.launch {
+            try {
+                val drinks = drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
+                drinkAdapter.setDrinks(drinks)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Ошибка загрузки напитков", Toast.LENGTH_SHORT).show()
+            }
+        }
         return when (item.itemId) {
             R.id.action_refresh -> {
                 getWeatherData(currentCity)
                 true
             }
             else -> super.onOptionsItemSelected(item)
+
         }
+
     }
+
 }

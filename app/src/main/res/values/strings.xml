@@ -4,5 +4,6 @@
     <string name="navigation_drawer_close" translatable="false">Закрыть меню</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_settings">SettingsActivity</string>
-
+    <string name="default_city">Moscow</string>
+    <string name="city_label">Город: %s</string>
 </resources>

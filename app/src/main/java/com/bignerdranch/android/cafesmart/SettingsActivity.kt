@@ -73,7 +73,14 @@ fun SettingsScreen(
         mutableStateOf(prefs.getBoolean(KEY_DARK_THEME, false))
     }
 
-    val cities = listOf("Moscow", "Saint Petersburg", "Novosibirsk", "Yekaterinburg", "Kazan")
+    val cities = listOf(
+        "Москва" to "Moscow",
+        "Санкт-Петербург" to "Saint Petersburg",
+        "Новосибирск" to "Novosibirsk",
+        "Екатеринбург" to "Yekaterinburg",
+        "Казань" to "Kazan",
+        // остальные города
+    )
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -114,11 +121,11 @@ fun SettingsScreen(
                 onDismissRequest = { expanded = false },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                cities.forEach { city ->
+                cities.forEach { (russianName, englishName) ->
                     DropdownMenuItem(
-                        text = { Text(city) },
+                        text = { Text(russianName) },
                         onClick = {
-                            selectedCity = city
+                            selectedCity = englishName
                             expanded = false
                         }
                     )
@@ -158,9 +165,9 @@ fun SettingsScreen(
 
         Button(
             onClick = {
-                saveSetting(KEY_CITY, selectedCity)
-                saveSetting(KEY_NOTIFICATIONS, isNotificationsEnabled)
-                saveSetting(KEY_DARK_THEME, isDarkThemeEnabled)
+                saveSetting(Constants.KEY_CITY, selectedCity)
+                saveSetting(Constants.KEY_NOTIFICATIONS, isNotificationsEnabled)
+                saveSetting(Constants.KEY_DARK_THEME, isDarkThemeEnabled)
                 onSaveAndExit()
             },
             modifier = Modifier.fillMaxWidth()
