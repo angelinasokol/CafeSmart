@@ -5,4 +5,9 @@
     <color name="coffee_price">#6D4C41</color>
     <color name="coffee_button">#5D4037</color>
     <color name="white">#FFFFFF</color>
+    <color name="background">#D3CAC7</color>
+    <color name="basic">#3C2F30</color>
+    <color name="navbar">#D9CAB3</color>
+    <color name="button">#BFA6A0</color>
+    <color name="accent">#A3C3A8</color>
 </resources>

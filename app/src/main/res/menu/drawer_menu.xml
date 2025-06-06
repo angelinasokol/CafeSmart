@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:title="Главная"
+        android:icon="@drawable/ic_home" />
+    <item
+        android:id="@+id/nav_orders"
+        android:title="История заказов"
+        android:icon="@drawable/ic_history" />
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Настройки"
+        android:icon="@drawable/ic_settings" />
+    <item
+        android:id="@+id/nav_about"
+        android:title="О приложении"
+        android:icon="@drawable/ic_info" />
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Выход"
+        android:icon="@drawable/ic_logout" />
+</menu>
