@@ -1,6 +1,7 @@
 package com.bignerdranch.android.cafesmart
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -38,16 +39,17 @@ class SettingsActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        SmallTopAppBar(
-                            title = { Text("Настройки") }
-                        )
+                        SmallTopAppBar(title = { Text("Настройки") })
                     }
                 ) { innerPadding ->
                     SettingsScreen(
                         modifier = Modifier.padding(innerPadding),
                         prefs = prefs,
-                        onSaveAndExit = {
-                            setResult(RESULT_OK)
+                        onSaveAndExit = { selectedCityEnglish ->
+                            val resultIntent = Intent().apply {
+                                putExtra(KEY_CITY, selectedCityEnglish)
+                            }
+                            setResult(RESULT_OK, resultIntent)
                             finish()
                         }
                     )
@@ -57,11 +59,12 @@ class SettingsActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     prefs: SharedPreferences,
-    onSaveAndExit: () -> Unit
+    onSaveAndExit: (selectedCityEnglish: String) -> Unit
 ) {
     val cities = listOf(
         "Москва" to "Moscow",
@@ -69,29 +72,16 @@ fun SettingsScreen(
         "Новосибирск" to "Novosibirsk",
         "Екатеринбург" to "Yekaterinburg",
         "Казань" to "Kazan"
-        // можно добавить другие города
     )
-
     val englishToRussian = cities.associate { it.second to it.first }
 
-    var selectedCityEnglish by remember {
-        mutableStateOf(prefs.getString(KEY_CITY, "Moscow") ?: "Moscow")
-    }
-
-    var selectedCityRussian by remember {
-        mutableStateOf(englishToRussian[selectedCityEnglish] ?: "Москва")
-    }
-
-    var isNotificationsEnabled by remember {
-        mutableStateOf(prefs.getBoolean(KEY_NOTIFICATIONS, true))
-    }
-    var isDarkThemeEnabled by remember {
-        mutableStateOf(prefs.getBoolean(KEY_DARK_THEME, false))
-    }
-
+    var selectedCityEnglish by remember { mutableStateOf(prefs.getString(KEY_CITY, "Moscow") ?: "Moscow") }
+    var selectedCityRussian by remember { mutableStateOf(englishToRussian[selectedCityEnglish] ?: "Москва") }
+    var isNotificationsEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_NOTIFICATIONS, true)) }
+    var isDarkThemeEnabled by remember { mutableStateOf(prefs.getBoolean(KEY_DARK_THEME, false)) }
     var expanded by remember { mutableStateOf(false) }
 
-    val saveSetting = { key: String, value: Any ->
+    fun saveSetting(key: String, value: Any) {
         with(prefs.edit()) {
             when (value) {
                 is Boolean -> putBoolean(key, value)
@@ -110,18 +100,22 @@ fun SettingsScreen(
         Text(
             text = "Настройки приложения",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(bottom = 20.dp)
         )
 
         Text(text = "Выберите город", style = MaterialTheme.typography.titleMedium)
-        Box {
-            Text(
-                text = selectedCityRussian,
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = selectedCityRussian,
+                onValueChange = {},
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = true }
-                    .padding(12.dp),
-                style = MaterialTheme.typography.bodyLarge
+                    .clickable { expanded = true },
+                readOnly = true,
+                label = { Text("Город") },
+                trailingIcon = null // Без иконок
             )
             DropdownMenu(
                 expanded = expanded,
@@ -142,12 +136,14 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+        Divider()
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Включить уведомления")
+            Text("Включить уведомления", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.weight(1f))
             Switch(
                 checked = isNotificationsEnabled,
@@ -161,7 +157,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Темная тема")
+            Text("Темная тема", style = MaterialTheme.typography.bodyLarge)
             Spacer(modifier = Modifier.weight(1f))
             Switch(
                 checked = isDarkThemeEnabled,
@@ -169,14 +165,15 @@ fun SettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
         Button(
             onClick = {
                 saveSetting(KEY_CITY, selectedCityEnglish)
                 saveSetting(KEY_NOTIFICATIONS, isNotificationsEnabled)
                 saveSetting(KEY_DARK_THEME, isDarkThemeEnabled)
-                onSaveAndExit()
+                expanded = false
+                onSaveAndExit(selectedCityEnglish)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
