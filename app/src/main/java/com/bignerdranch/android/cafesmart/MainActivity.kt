@@ -11,25 +11,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Инициализация нижней навигации
-        bottomNavigation.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    // Уже на главной
-                    true
-                }
-                R.id.nav_history -> {
-                    startActivity(Intent(this, OrderHistoryActivity::class.java))
-                    true
-                }
-                R.id.nav_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
-
         // Запрос местоположения и погоды
         getWeatherForCurrentLocation()
 
