@@ -2,22 +2,21 @@ package com.bignerdranch.android.cafesmart
 
 import android.os.Bundle
 import android.widget.Toast
-
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import android.widget.TextView
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
-
-
+import androidx.lifecycle.lifecycleScope
+import com.bignerdranch.android.cafesmart.data.DrinkDatabase
+import kotlinx.coroutines.launch
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bignerdranch.android.cafesmart.data.DrinkAdapter
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
-
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,7 +24,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navView: NavigationView
     private lateinit var weatherService: WeatherApiService
     private lateinit var weatherTextView: TextView
-
+    private lateinit var drinkDatabase: DrinkDatabase
+    private lateinit var drinkRecyclerView: RecyclerView
+    private lateinit var drinkAdapter: DrinkAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,11 +34,12 @@ class MainActivity : AppCompatActivity() {
 
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navigationView)
+        weatherTextView = findViewById(R.id.weatherTextView)
+        drinkRecyclerView = findViewById(R.id.drinkRecyclerView)
+
+        drinkDatabase = DrinkDatabase.getDatabase(this, lifecycleScope)
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-
-
-
         val toggle = ActionBarDrawerToggle(
             this,
             drawerLayout,
@@ -57,26 +59,32 @@ class MainActivity : AppCompatActivity() {
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true
-
         }
-        weatherTextView = findViewById(R.id.weatherTextView)
 
+        // Retrofit и WeatherService
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-
         weatherService = retrofit.create(WeatherApiService::class.java)
 
-        getWeatherData("Moscow") // <-- можешь сменить город
+        // Настройка RecyclerView и адаптера
+        drinkAdapter = DrinkAdapter()
+        drinkRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = drinkAdapter
+        }
 
+        // Запрос погоды и обновление списка напитков
+        getWeatherData("Moscow")
     }
 
     private fun showToast(text: String) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
+
     private fun getWeatherData(city: String) {
-        val apiKey = "26e4d36cd821d447f9da5f40f7a01f56"
+        val apiKey = "32d36cf9e173a3ed9ed3e075aaec4e86"
 
         weatherService.getCurrentWeather(city, apiKey, "metric")
             .enqueue(object : Callback<WeatherResponse> {
@@ -91,7 +99,11 @@ class MainActivity : AppCompatActivity() {
                             val description = it.weather[0].description
                             val output = "Температура: $temp°C\nПогода: $description"
                             weatherTextView.text = output
+
+                            // Здесь преобразуем Float в Double
+                            showDrinksBasedOnTemperature(temp.toDouble())
                         }
+
                     } else {
                         weatherTextView.text = "Ошибка: ${response.code()}"
                     }
@@ -103,4 +115,16 @@ class MainActivity : AppCompatActivity() {
             })
     }
 
+    private fun showDrinksBasedOnTemperature(outsideTemp: Double) {
+        lifecycleScope.launch {
+            val drinks = if (outsideTemp < 10) {
+                // Холодно — горячие напитки сверху
+                drinkDatabase.drinkDao().getAllDrinksSortedHotToCold()
+            } else {
+                // Жарко — холодные напитки сверху
+                drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
+            }
+            drinkAdapter.setDrinks(drinks)
+        }
+    }
 }

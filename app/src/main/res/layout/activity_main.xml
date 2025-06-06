@@ -51,5 +51,15 @@
         app:menu="@menu/drawer_menu"
         app:headerLayout="@layout/nav_header" />
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/drinkRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="150dp"
+        android:padding="16dp"
+        />
+
+
+
 
 </androidx.drawerlayout.widget.DrawerLayout>
