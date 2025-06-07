@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bignerdranch.android.cafesmart.data.DrinkAdapter
 import com.bignerdranch.android.cafesmart.data.DrinkDatabase
+import com.bignerdranch.android.cafesmart.data.prepopulate
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.appbar.MaterialToolbar
@@ -200,7 +201,7 @@ class MainActivity : AppCompatActivity() {
         drinkRecyclerView = findViewById(R.id.drinkRecyclerView)
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
+
 
         val toggle = ActionBarDrawerToggle(
             this,
@@ -229,7 +230,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupDatabase() {
         drinkDatabase = DrinkDatabase.getDatabase(this, lifecycleScope)
+
+        // Если хочешь гарантировать заполнение данных (например, при первом запуске), то можно так:
+        lifecycleScope.launch {
+            prepopulate(drinkDatabase.drinkDao())
+            reloadDrinks()  // обновляем данные в адаптере после наполнения базы
+        }
     }
+
 
     private fun setupWeatherService() {
         val retrofit = Retrofit.Builder()
@@ -306,4 +314,5 @@ class MainActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
 }
