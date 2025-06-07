@@ -38,9 +38,7 @@ class SettingsActivity : ComponentActivity() {
             CafeSmartTheme(darkTheme = isDarkThemePref) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        SmallTopAppBar(title = { Text("Настройки") })
-                    }
+
                 ) { innerPadding ->
                     SettingsScreen(
                         modifier = Modifier.padding(innerPadding),
@@ -71,7 +69,10 @@ fun SettingsScreen(
         "Санкт-Петербург" to "Saint Petersburg",
         "Новосибирск" to "Novosibirsk",
         "Екатеринбург" to "Yekaterinburg",
-        "Казань" to "Kazan"
+        "Казань" to "Kazan",
+        "Красноярск" to "Krasnoyarsk",
+        "Иркутск" to "Irkutsk",
+        "Мурманск" to "Murmansk"
     )
     val englishToRussian = cities.associate { it.second to it.first }
 

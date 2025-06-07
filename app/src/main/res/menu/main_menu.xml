@@ -5,4 +5,7 @@
         android:title="Обновить погоду"
         android:icon="@android:drawable/ic_menu_rotate"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:title="Настройки" />
 </menu>

@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var prefs: SharedPreferences
     private var currentCity = ""
+    private var currentTemp: Double? = null  // текущая температура
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -53,7 +54,10 @@ class MainActivity : AppCompatActivity() {
         "Saint Petersburg" to "Санкт-Петербург",
         "Novosibirsk" to "Новосибирск",
         "Yekaterinburg" to "Екатеринбург",
-        "Kazan" to "Казань"
+        "Kazan" to "Казань",
+        "Krasnoyarsk" to "Красноярск",
+        "Irkutsk" to "Иркутск",
+        "Murmansk" to "Мурманск"
     )
 
     private val settingsLauncher = registerForActivityResult(
@@ -184,6 +188,7 @@ class MainActivity : AppCompatActivity() {
         if (city.isNullOrEmpty()) {
             cityTextView.text = getString(R.string.city_not_set)
             weatherTextView.text = getString(R.string.weather_not_available)
+            currentTemp = null
         } else {
             currentCity = city
             val displayCity = cityNameMap[city] ?: city
@@ -215,7 +220,6 @@ class MainActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> showToast("Главная")
-                R.id.nav_orders -> showToast("История заказов")
                 R.id.nav_settings -> {
                     val intent = Intent(this, SettingsActivity::class.java)
                     settingsLauncher.launch(intent)
@@ -249,13 +253,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun reloadDrinks() {
         lifecycleScope.launch {
-            val drinks = drinkDatabase.drinkDao().getAllDrinksSortedColdToHot()
-            drinkAdapter.setDrinks(drinks)
+            val drinks = drinkDatabase.drinkDao().getAllDrinks() // DAO должен содержать такой метод
+            val sortedDrinks = when {
+                currentTemp == null -> drinks
+                currentTemp!! <= 10 -> drinks.sortedBy {
+                    when (it.temperatureCategory) {
+                        "hot" -> 0
+                        "warm" -> 1
+                        "cold" -> 2
+                        else -> 3
+                    }
+                }
+                currentTemp!! in 10.0..15.0 -> drinks.sortedBy {
+                    when (it.temperatureCategory) {
+                        "warm" -> 0
+                        "hot" -> 1
+                        "cold" -> 2
+                        else -> 3
+                    }
+                }
+                else -> drinks.sortedBy {
+                    when (it.temperatureCategory) {
+                        "cold" -> 0
+                        "warm" -> 1
+                        "hot" -> 2
+                        else -> 3
+                    }
+                }
+            }
+            drinkAdapter.setDrinks(sortedDrinks)
         }
-    }
-
-    private fun showToast(text: String) {
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
 
     private fun getWeatherData(city: String) {
@@ -269,18 +296,35 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     if (response.isSuccessful) {
                         val weather = response.body()
-                        weatherTextView.text =
-                            "Температура: ${weather?.main?.temp ?: "-"}°C\n" +
-                                    "Погодные условия: ${weather?.weather?.get(0)?.description ?: "-"}"
+                        currentTemp = weather?.main?.temp?.toDouble() // Обязательно преобразуем Float? в Double?
+                        weatherTextView.text = "Температура: ${currentTemp ?: "-"}°C\n" +
+                                "Погодные условия: ${weather?.weather?.get(0)?.description ?: "-"}"
+                        reloadDrinks()
                     } else {
                         weatherTextView.text = "Ошибка получения данных"
+                        currentTemp = null
+                        reloadDrinks()
                     }
                 }
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
                     weatherTextView.text = "Ошибка подключения"
+                    currentTemp = null
+                    reloadDrinks()
                 }
             })
+    }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -289,21 +333,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_refresh -> {
-                refreshCity()
-                reloadDrinks()
+        return when(item.itemId) {
+            R.id.action_settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                settingsLauncher.launch(intent)
                 true
             }
             else -> super.onOptionsItemSelected(item)
-        }
-    }
-
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            super.onBackPressed()
         }
     }
 }
