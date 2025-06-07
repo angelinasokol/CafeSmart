@@ -12,10 +12,10 @@ class DrinkAdapter : RecyclerView.Adapter<DrinkAdapter.DrinkViewHolder>() {
     inner class DrinkViewHolder(private val binding: ItemDrinkBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(drink: Drink) {
             binding.drinkNameTextView.text = drink.name
-            val tempDescription = when (drink.temperatureCategory) {
-                "cold" -> "Холодный"
-                "warm" -> "Тёплый"
-                "hot" -> "Горячий"
+            val tempDescription = when (drink.temperatureLevel) {
+                0 -> "Холодный"
+                1 -> "Тёплый"
+                2 -> "Горячий"
                 else -> "Неизвестно"
             }
             binding.drinkTempTextView.text = tempDescription
