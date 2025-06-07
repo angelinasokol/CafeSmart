@@ -216,12 +216,14 @@ class MainActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> showToast("Главная")
-                R.id.nav_orders -> showToast("История заказов")
                 R.id.nav_settings -> {
                     val intent = Intent(this, SettingsActivity::class.java)
                     settingsLauncher.launch(intent)
                 }
-                R.id.nav_about -> showToast("О приложении")
+                R.id.nav_about -> {
+                    val intent = Intent(this, AboutActivity::class.java)
+                    settingsLauncher.launch(intent)
+                }
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true

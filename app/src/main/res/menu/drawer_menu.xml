@@ -4,10 +4,6 @@
         android:title="Главная"
         android:icon="@drawable/ic_home" />
     <item
-        android:id="@+id/nav_orders"
-        android:title="История заказов"
-        android:icon="@drawable/ic_history" />
-    <item
         android:id="@+id/nav_settings"
         android:icon="@android:drawable/ic_menu_manage"
         android:title="Настройки" />
